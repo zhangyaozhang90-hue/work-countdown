@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>下班倒计时</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f1a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 390px;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Setup Page */
+        .page-setup {
+            min-height: 100vh;
+            padding: 60px 24px 40px;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .setup-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .setup-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        input[type="time"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            background: #1e1e30;
+            border: 1px solid #2a2a40;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: #667eea;
+        }
+
+        .salary-toggle {
+            display: flex;
+            background: #1e1e30;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 12px;
+        }
+
+        .salary-toggle button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .salary-toggle button.active {
+            background: #667eea;
+            color: #fff;
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: auto;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn-start:active {
+            transform: scale(0.97);
+        }
+
+        .btn-start:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Main Page */
+        .page-main {
+            min-height: 100vh;
+            padding: 50px 24px 40px;
+            display: none;
+            flex-direction: column;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+        }
+
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .main-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .btn-reset {
+            padding: 8px 14px;
+            background: #1e1e30;
+            border: 1px solid #2a2a40;
+            border-radius: 8px;
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Money Card */
+        .money-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 28px 24px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .money-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+
+        .money-label {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .money-amount {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .money-amount .currency {
+            font-size: 24px;
+            font-weight: 400;
+            margin-right: 4px;
+        }
+
+        .money-sub {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 8px;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            margin-bottom: 20px;
+        }
+
+        .progress-card {
+            background: #1e1e30;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+
+        .progress-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-title {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .progress-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #2a2a40;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s linear;
+        }
+
+        .progress-fill.green {
+            background: linear-gradient(90deg, #00c9a7, #00d4aa);
+        }
+
+        .progress-fill.orange {
+            background: linear-gradient(90deg, #f6a623, #f7b731);
+        }
+
+        .progress-fill.purple {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        /* Status Cards */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .status-card {
+            background: #1e1e30;
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .status-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .status-value {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .status-label {
+            font-size: 11px;
+            color: #666;
+        }
+
+        /* Motivational */
+        .motivation {
+            text-align: center;
+            padding: 16px;
+            background: #1e1e30;
+            border-radius: 14px;
+            margin-top: auto;
+        }
+
+        .motivation p {
+            font-size: 14px;
+            color: #888;
+            line-height: 1.5;
+        }
+
+        /* Off work celebration */
+        .celebration {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 15, 26, 0.95);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .celebration.show {
+            display: flex;
+        }
+
+        .celebration h1 {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .celebration p {
+            font-size: 18px;
+            color: #888;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .money-card {
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        /* Hide page */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Setup Page -->
+        <div class="page-setup" id="pageSetup">
+            <div class="setup-header">
+                <h1>下班倒计时</h1>
+                <p>设置你的工作信息，开始赚钱吧</p>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>上班时间</label>
+                    <input type="time" id="startTime" value="09:00">
+                </div>
+                <div class="form-group">
+                    <label>下班时间</label>
+                    <input type="time" id="endTime" value="18:00">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>午休开始</label>
+                    <input type="time" id="lunchStart" value="12:00">
+                </div>
+                <div class="form-group">
+                    <label>午休结束</label>
+                    <input type="time" id="lunchEnd" value="13:00">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="salary-toggle">
+                    <button class="active" id="btnDaily" onclick="setSalaryType('daily')">日薪</button>
+                    <button id="btnMonthly" onclick="setSalaryType('monthly')">月薪</button>
+                </div>
+                <input type="number" id="salary" placeholder="输入金额（元）" min="0">
+            </div>
+
+            <div class="form-group">
+                <label>每月工作天数</label>
+                <input type="number" id="workDays" value="22" min="1" max="31">
+            </div>
+
+            <button class="btn-start" id="btnStart" onclick="startApp()">开始计时</button>
+        </div>
+
+        <!-- Main Page -->
+        <div class="page-main" id="pageMain">
+            <div class="main-header">
+                <h2>今日工作</h2>
+                <button class="btn-reset" onclick="resetApp()">重新设置</button>
+            </div>
+
+            <!-- Money Earned -->
+            <div class="money-card">
+                <div class="money-label">已赚到</div>
+                <div class="money-amount">
+                    <span class="currency">¥</span><span id="earned">0.00</span>
+                </div>
+                <div class="money-sub">今日预计 ¥<span id="dailyTotal">0</span></div>
+            </div>
+
+            <!-- Work Progress -->
+            <div class="progress-section">
+                <div class="progress-card">
+                    <div class="progress-top">
+                        <span class="progress-title">工作进度</span>
+                        <span class="progress-value" id="workPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill purple" id="workBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Grid -->
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-icon">🍜</div>
+                    <div class="status-value" id="lunchCountdown">--</div>
+                    <div class="status-label">距离午休</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">🎉</div>
+                    <div class="status-value" id="offCountdown">--</div>
+                    <div class="status-label">距离下班</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">⏱️</div>
+                    <div class="status-value" id="workedTime">0h</div>
+                    <div class="status-label">已工作</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">💰</div>
+                    <div class="status-value" id="perMinute">0</div>
+                    <div class="status-label">元/分钟</div>
+                </div>
+            </div>
+
+            <!-- Motivation -->
+            <div class="motivation">
+                <p id="motivationText">加油打工人，每一秒都在赚钱！</p>
+            </div>
+        </div>
+
+        <!-- Celebration -->
+        <div class="celebration" id="celebration">
+            <h1>🎊</h1>
+            <p>下班啦！今天辛苦了</p>
+        </div>
+    </div>
+
+    <script>
+        let config = {};
+        let timer = null;
+
+        const motivations = [
+            '加油打工人，每一秒都在赚钱！',
+            '摸鱼也是在赚钱，心态放轻松～',
+            '钱在一点一点进口袋了...',
+            '坚持住，自由就在前方！',
+            '你的时间很值钱，认真对待每一分钟',
+            '今天也是元气满满的一天！',
+            '工作使我快乐（主要是钱）',
+            '再坚持一下下就好了～',
+        ];
+
+        function setSalaryType(type) {
+            document.getElementById('btnDaily').classList.toggle('active', type === 'daily');
+            document.getElementById('btnMonthly').classList.toggle('active', type === 'monthly');
+            config.salaryType = type;
+            document.getElementById('salary').placeholder = type === 'daily' ? '输入日薪（元）' : '输入月薪（元）';
+        }
+
+        function timeToMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function formatMinutes(mins) {
+            if (mins <= 0) return '已过';
+            if (mins < 60) return mins + 'min';
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            return m > 0 ? `${h}h${m}m` : `${h}h`;
+        }
+
+        function startApp() {
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const lunchStart = document.getElementById('lunchStart').value;
+            const lunchEnd = document.getElementById('lunchEnd').value;
+            const salary = parseFloat(document.getElementById('salary').value);
+            const workDays = parseInt(document.getElementById('workDays').value) || 22;
+
+            if (!salary || salary <= 0) {
+                document.getElementById('salary').style.borderColor = '#e74c3c';
+                return;
+            }
+
+            config = {
+                startTime: timeToMinutes(startTime),
+                endTime: timeToMinutes(endTime),
+                lunchStart: timeToMinutes(lunchStart),
+                lunchEnd: timeToMinutes(lunchEnd),
+                salaryType: config.salaryType || 'daily',
+                salary,
+                workDays
+            };
+
+            const totalWorkMinutes = (config.endTime - config.startTime) - (config.lunchEnd - config.lunchStart);
+            config.dailySalary = config.salaryType === 'monthly' ? salary / workDays : salary;
+            config.perMinute = config.dailySalary / totalWorkMinutes;
+            config.totalWorkMinutes = totalWorkMinutes;
+
+            localStorage.setItem('workCountdownConfig', JSON.stringify({
+                startTime, endTime, lunchStart, lunchEnd,
+                salary, salaryType: config.salaryType, workDays
+            }));
+
+            document.getElementById('pageSetup').classList.add('hidden');
+            document.getElementById('pageMain').style.display = 'flex';
+            document.getElementById('dailyTotal').textContent = config.dailySalary.toFixed(0);
+            document.getElementById('perMinute').textContent = config.perMinute.toFixed(2);
+
+            updateMotivation();
+            update();
+            timer = setInterval(update, 1000);
+        }
+
+        function update() {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const currentSeconds = currentMinutes * 60 + now.getSeconds();
+
+            const startSeconds = config.startTime * 60;
+            const endSeconds = config.endTime * 60;
+            const lunchStartSeconds = config.lunchStart * 60;
+            const lunchEndSeconds = config.lunchEnd * 60;
+            const lunchDuration = lunchEndSeconds - lunchStartSeconds;
+
+            // Calculate worked minutes (excluding lunch)
+            let workedSeconds = 0;
+            if (currentSeconds >= startSeconds) {
+                if (currentSeconds <= lunchStartSeconds) {
+                    workedSeconds = currentSeconds - startSeconds;
+                } else if (currentSeconds <= lunchEndSeconds) {
+                    workedSeconds = lunchStartSeconds - startSeconds;
+                } else if (currentSeconds <= endSeconds) {
+                    workedSeconds = (currentSeconds - startSeconds) - lunchDuration;
+                } else {
+                    workedSeconds = config.totalWorkMinutes * 60;
+                }
+            }
+
+            const workedMinutes = workedSeconds / 60;
+            const earned = Math.max(0, workedMinutes * config.perMinute);
+            document.getElementById('earned').textContent = earned.toFixed(2);
+
+            // Work progress
+            const progress = Math.min(100, (workedMinutes / config.totalWorkMinutes) * 100);
+            document.getElementById('workPercent').textContent = Math.floor(progress) + '%';
+            document.getElementById('workBar').style.width = progress + '%';
+
+            // Lunch countdown
+            const lunchMinsLeft = Math.ceil((config.lunchStart * 60 - currentSeconds) / 60);
+            if (currentMinutes >= config.lunchStart && currentMinutes < config.lunchEnd) {
+                document.getElementById('lunchCountdown').textContent = '休息中';
+            } else if (currentMinutes >= config.lunchEnd) {
+                document.getElementById('lunchCountdown').textContent = '已过';
+            } else {
+                document.getElementById('lunchCountdown').textContent = formatMinutes(lunchMinsLeft);
+            }
+
+            // Off work countdown
+            const offMinsLeft = Math.ceil((config.endTime * 60 - currentSeconds) / 60);
+            if (offMinsLeft <= 0) {
+                document.getElementById('offCountdown').textContent = '下班！';
+                document.getElementById('celebration').classList.add('show');
+            } else {
+                document.getElementById('offCountdown').textContent = formatMinutes(offMinsLeft);
+            }
+
+            // Worked time
+            document.getElementById('workedTime').textContent = formatMinutes(Math.floor(workedMinutes));
+        }
+
+        function updateMotivation() {
+            const text = motivations[Math.floor(Math.random() * motivations.length)];
+            document.getElementById('motivationText').textContent = text;
+            setTimeout(updateMotivation, 30000);
+        }
+
+        function resetApp() {
+            clearInterval(timer);
+            localStorage.removeItem('workCountdownConfig');
+            document.getElementById('pageMain').style.display = 'none';
+            document.getElementById('pageSetup').classList.remove('hidden');
+            document.getElementById('celebration').classList.remove('show');
+        }
+
+        // Restore saved config
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('workCountdownConfig');
+            if (saved) {
+                const data = JSON.parse(saved);
+                document.getElementById('startTime').value = data.startTime;
+                document.getElementById('endTime').value = data.endTime;
+                document.getElementById('lunchStart').value = data.lunchStart;
+                document.getElementById('lunchEnd').value = data.lunchEnd;
+                document.getElementById('salary').value = data.salary;
+                document.getElementById('workDays').value = data.workDays;
+                setSalaryType(data.salaryType);
+            }
+        });
+    </script>
+</body>
+</html>
